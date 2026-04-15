@@ -14,17 +14,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-async def post_init(app: Application):
+async def main_async():
+    """تهيئة قاعدة البيانات أولاً، ثم تشغيل البوت"""
+
+    # ✅ 1. تهيئة قاعدة البيانات وتحميل الأسئلة قبل أي شيء
     await database.init_db()
     count = await database.load_from_json("backup_data.json")
-    logger.info(f"✅ Bot ready with {count} questions.")
+    logger.info(f"✅ Database ready with {count} questions.")
 
-async def main_async():
-    """نقوم بتشغيل البوت داخل دالة غير متزامنة لتجنب مشاكل Event Loop"""
+    # ✅ 2. بناء التطبيق وتشغيله
     app = (
         Application.builder()
         .token(TELEGRAM_TOKEN)
-        .post_init(post_init)
         .build()
     )
 
@@ -34,12 +35,12 @@ async def main_async():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
     app.add_error_handler(error_handler)
 
-    logger.info("🤖 Starting bot...")
+    logger.info("🤖 Bot is polling...")
     await app.initialize()
     await app.updater.start_polling(allowed_updates=["message"], drop_pending_updates=True)
     await app.start()
-    
-    # إبقاء البوت قيد التشغيل
+
+    # إبقاء البوت يعمل
     try:
         await asyncio.Event().wait()
     except (KeyboardInterrupt, SystemExit):
@@ -50,7 +51,6 @@ async def main_async():
         await app.shutdown()
 
 def main():
-    """نقطة الدخول الرئيسية"""
     asyncio.run(main_async())
 
 if __name__ == "__main__":
