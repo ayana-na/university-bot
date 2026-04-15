@@ -6,8 +6,8 @@ import os
 logger = logging.getLogger(__name__)
 DB_PATH = os.path.join(os.path.dirname(__file__), "qa_database.db")
 
-async def init_db():
-    
+async def _ensure_table():
+    """إنشاء الجدول إذا لم يكن موجوداً"""
     try:
         async with aiosqlite.connect(DB_PATH) as db:
             await db.execute("""
@@ -19,15 +19,20 @@ async def init_db():
                 )
             """)
             await db.commit()
-        logger.info("Database initialized successfully.")
     except Exception as e:
-        logger.error(f"Failed to initialize database: {e}")
-        raise
+        logger.error(f"Failed to ensure table: {e}")
+
+async def init_db():
+    """تهيئة قاعدة البيانات (تأكد من وجود الجدول)"""
+    await _ensure_table()
+    logger.info("Database initialized (table ensured).")
 
 async def load_from_json(filepath="backup_data.json"):
-   
+    """تحميل الأسئلة من ملف JSON إلى قاعدة البيانات"""
+    await _ensure_table()  # تأكد من وجود الجدول أولاً
+
     if not os.path.exists(filepath):
-        logger.error(f"File {filepath} not found. Make sure it is in the project root.")
+        logger.error(f"File {filepath} not found. Current directory: {os.getcwd()}")
         return 0
 
     try:
@@ -49,7 +54,8 @@ async def load_from_json(filepath="backup_data.json"):
         return 0
 
 async def get_all_questions():
-    
+    """استرجاع كل الأسئلة للبحث"""
+    await _ensure_table()
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute("SELECT id, question, answer FROM qa_pairs") as cursor:
@@ -57,6 +63,7 @@ async def get_all_questions():
             return [dict(row) for row in rows]
 
 async def get_total_count():
+    await _ensure_table()
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("SELECT COUNT(*) FROM qa_pairs") as cursor:
             return (await cursor.fetchone())[0]
