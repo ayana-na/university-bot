@@ -1,5 +1,5 @@
 import logging
-from rapidfuzz import fuzz, process
+from fuzzywuzzy import fuzz, process
 from database import get_all_questions
 
 logger = logging.getLogger(__name__)
@@ -15,6 +15,7 @@ async def find_best_answer(query: str) -> tuple[str | None, float]:
 
     questions = [pair["question"] for pair in qa_pairs]
 
+
     results = process.extract(
         query, questions,
         scorer=fuzz.token_set_ratio,
@@ -25,6 +26,7 @@ async def find_best_answer(query: str) -> tuple[str | None, float]:
         return None, 0.0
 
     best_match, best_score, best_idx = results[0]
+
 
     results_wr = process.extract(
         query, questions,
