@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 async def post_init(app: Application):
     await database.init_db()
     count = await database.load_from_json("backup_data.json")
-    logger.info(f" Bot ready with {count} questions.")
+    logger.info(f"✅ Bot ready with {count} questions.")
 
 async def main_async():
     """نقوم بتشغيل البوت داخل دالة غير متزامنة لتجنب مشاكل Event Loop"""
@@ -34,12 +34,12 @@ async def main_async():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
     app.add_error_handler(error_handler)
 
-    logger.info(" Polling...")
+    logger.info("🤖 Starting bot...")
     await app.initialize()
     await app.updater.start_polling(allowed_updates=["message"], drop_pending_updates=True)
     await app.start()
     
-   
+    # إبقاء البوت قيد التشغيل
     try:
         await asyncio.Event().wait()
     except (KeyboardInterrupt, SystemExit):
@@ -50,7 +50,7 @@ async def main_async():
         await app.shutdown()
 
 def main():
-    
+    """نقطة الدخول الرئيسية"""
     asyncio.run(main_async())
 
 if __name__ == "__main__":
