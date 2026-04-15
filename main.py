@@ -29,9 +29,9 @@ async def post_init(app: Application):
         logger.info("جاري تهيئة قاعدة البيانات...")
         await database.init_db()
         count = await database.load_from_json("backup_data.json")
-        logger.info(f"✅ تم تحميل {count} سؤال بنجاح.")
+        logger.info(f" تم تحميل {count} سؤال بنجاح.")
     except Exception as e:
-        logger.error(f"❌ خطأ في تهيئة قاعدة البيانات: {e}", exc_info=True)
+        logger.error(f" خطأ في تهيئة قاعدة البيانات: {e}", exc_info=True)
 
 
 async def main():
@@ -52,7 +52,7 @@ async def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
     app.add_error_handler(error_handler)
 
-    logger.info("✅ البوت يعمل الآن...")
+    logger.info(" البوت يعمل الآن...")
 
     
     await app.initialize()
