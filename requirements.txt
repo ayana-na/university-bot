@@ -1,5 +1,4 @@
 python-telegram-bot==21.1
-fuzzywuzzy==0.18.0
-python-Levenshtein==0.23.0
+thefuzz==0.20.0
 aiosqlite==0.20.0
 python-dotenv==1.0.1
