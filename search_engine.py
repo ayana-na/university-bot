@@ -15,7 +15,6 @@ async def find_best_answer(query: str) -> tuple[str | None, float]:
 
     questions = [pair["question"] for pair in qa_pairs]
 
-    
     results = process.extract(
         query, questions,
         scorer=fuzz.token_set_ratio,
@@ -25,16 +24,34 @@ async def find_best_answer(query: str) -> tuple[str | None, float]:
     if not results:
         return None, 0.0
 
-    best_match, best_score, best_idx = results[0]
+    first = results[0]
+    if len(first) == 3:
+        best_match, best_score, best_idx = first
+    else:
+        best_match, best_score = first
+        try:
+            best_idx = questions.index(best_match)
+        except ValueError:
+            best_idx = 0
 
-   
     results_wr = process.extract(
         query, questions,
         scorer=fuzz.WRatio,
         limit=3
     )
-    if results_wr and results_wr[0][1] > best_score:
-        best_match, best_score, best_idx = results_wr[0]
+    if results_wr:
+        first_wr = results_wr[0]
+        if len(first_wr) == 3:
+            match_wr, score_wr, idx_wr = first_wr
+        else:
+            match_wr, score_wr = first_wr
+            try:
+                idx_wr = questions.index(match_wr)
+            except ValueError:
+                idx_wr = 0
+
+        if score_wr > best_score:
+            best_match, best_score, best_idx = match_wr, score_wr, idx_wr
 
     if best_score >= SIMILARITY_THRESHOLD:
         return qa_pairs[best_idx]["answer"], best_score
